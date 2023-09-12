@@ -121,7 +121,7 @@ class MealyMachineExample(Scene):
         output_symbols_group = VGroup()  # Grupo para armazenar os símbolos de saída
         arrows_group = VGroup()  # Grupo para armazenar as setas de transição
 
-        proximo_estado: str = None
+        proximo_estado: str | None = None
 
         for simbolo in input_string:
             for transicao in transitions:
