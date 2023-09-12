@@ -1,7 +1,6 @@
 from manim import *
-from numpy import ndarray
 
-from mealy_machine_library import function_type
+from mealy_machine_library import function_type, mealy_machine_as_a_function
 
 
 class Introduction(Scene):
@@ -49,25 +48,7 @@ class MealyMachineDefinition(Scene):
         self.same_length_property()
 
         # Create the text and shape
-        input_word = Text("abcde").move_to(4 * LEFT)
-
-        mealy_machine = Text("Máquina de Mealy")
-        mealy_machine_frame = Square(color=WHITE).surround(mealy_machine, 2)
-
-        output_word = Text("01001").move_to(mealy_machine)
-
-        self.add(mealy_machine_frame)
-
-        self.play(Write(input_word))
-        self.play(Create(mealy_machine))
-
-        # Add text and shape to the scene
-        fade_and_move_to_object(self, input_word, mealy_machine)
-
-        # Wait for a moment before ending the scene
-        self.wait(1)
-
-        fade_in_and_move_to_point(self, output_word, 4 * RIGHT)
+        mealy_machine_as_a_function(self)
 
         mealy_machine_tuple(self)
 
@@ -89,22 +70,10 @@ class MealyMachineDefinition(Scene):
         self.play(FadeOut(output_word_length))
 
     def finite_transductor_title(self):
-        finite_transductor = Text("Transdutor de estado finito")
+        finite_transductor = Text("Transdutor finito")
         self.play(Create(finite_transductor))
         self.wait(3)
         self.play(FadeOut(finite_transductor))
-
-
-def fade_and_move_to_object(scene: Scene, from_object: Mobject, to_object: Mobject):
-    # Move the text to the shape and fade it out
-    scene.play(
-        from_object.animate.move_to(to_object).fade(1),
-    )
-
-
-def fade_in_and_move_to_point(scene: Scene, from_object: Mobject, to_object: ndarray):
-    # Move the text to the shape and fade it out
-    scene.play(FadeIn(from_object.animate.move_to(to_object)))
 
 
 def mealy_machine_tuple(scene: Scene):
@@ -132,74 +101,69 @@ def mealy_machine_tuple(scene: Scene):
 class MealyMachineExample(Scene):
     def construct(self):
         # Defina seus estados, transições e funções de saída aqui
-        global simbolo_saida
-        estados = ["q0", "q1"]
-        transicoes = [((0, "q0"), "q1"), ((1, "q0"), "q1"), ((0, "q1"), "q0"), ((1, "q1"), "q0")]
-        saidas = [((0, "q0"), "a"), ((1, "q0"), "b"), ((0, "q1"), "a"), ((1, "q1"), "a")]
+        states = ["q_0", "q_1"]
+        transitions = [((0, "q0"), "q1"), ((1, "q0"), "q1"), ((0, "q1"), "q0"), ((1, "q1"), "q0")]
+        outputs = [((0, "q0"), "a"), ((1, "q0"), "b"), ((0, "q1"), "a"), ((1, "q1"), "a")]
 
-        # Insira a palavra de entrada
-        palavra_entrada = "0110"
-        palavra_saida = ""
+        input_string = "0110"
+        output_string = ""
 
-        # Crie a representação visual da máquina de Mealy
-        estados_text = [Text(estado) for estado in estados]
-        estados_group = VGroup(*estados_text)
-        estados_group.arrange(RIGHT, buff=1.5)  # Espaçamento entre estados
+        states_tex = [Tex(estado) for estado in states]
+        states_group = VGroup(*states_tex)
+        states_group.arrange(RIGHT, buff=1.5)
 
-        # Crie um estado atual
-        estado_atual = Text("q0", color=GREEN)
-        estado_atual.next_to(estados_text[0], UP)
+        current_state_tex = Tex("q_0", color=GREEN)
+        current_state_tex.next_to(states_tex[0], UP)
 
-        # Adicione estados à cena
-        self.play(Create(estados_group))
-        self.play(Create(estado_atual))
+        self.play(Create(states_group))
+        self.play(Create(current_state_tex))
 
-        # Crie as animações para a transição e saída da palavra
-        simbolos_saida_group = VGroup()  # Grupo para armazenar os símbolos de saída
-        setas_group = VGroup()  # Grupo para armazenar as setas de transição
+        output_symbols_group = VGroup()  # Grupo para armazenar os símbolos de saída
+        arrows_group = VGroup()  # Grupo para armazenar as setas de transição
 
-        for simbolo in palavra_entrada:
-            # Determine a próxima transição com base no símbolo de entrada
-            for transicao in transicoes:
-                if (int(simbolo), estado_atual.get_text()) == transicao[0]:
+        proximo_estado: str = None
+
+        for simbolo in input_string:
+            for transicao in transitions:
+                if (int(simbolo), current_state_tex.get_text()) == transicao[0]:
                     proximo_estado = transicao[1]
                     break
 
             # Atualize o estado atual
             proximo_estado_text = Text(proximo_estado, color=GREEN)
-            proximo_estado_text.next_to(estados_text[estados.index(proximo_estado)], UP)
+            proximo_estado_text.next_to(states_tex[states.index(proximo_estado)], UP)
 
             # Crie uma seta para representar a transição
-            seta = Arrow(estado_atual, proximo_estado_text, buff=0.1)
-            setas_group.add(seta)
+            seta = Arrow(current_state_tex, proximo_estado_text, buff=0.1)
+            arrows_group.add(seta)
 
             # Determine a saída com base na função de saída
-            for saida in saidas:
-                if (int(simbolo), estado_atual.get_text()) == saida[0]:
+            for saida in outputs:
+                if (int(simbolo), current_state_tex.get_text()) == saida[0]:
                     simbolo_saida = saida[1]
                     break
 
             # Atualize a palavra de saída
-            palavra_saida += simbolo_saida
+            output_string += simbolo_saida
 
             # Crie animações para mostrar a saída na tela
             simbolo_saida_text = Text(simbolo_saida)  # Alinhamento na parte inferior
-            if simbolos_saida_group:
-                simbolo_saida_text.next_to(simbolos_saida_group, RIGHT, buff=0.2)  # Espaçamento entre símbolos
+            if output_symbols_group:
+                simbolo_saida_text.next_to(output_symbols_group, RIGHT, buff=0.2)  # Espaçamento entre símbolos
             else:
-                simbolo_saida_text.next_to(estado_atual, DOWN, buff=0.2)  # Espaçamento entre símbolos
-            simbolos_saida_group.add(simbolo_saida_text)
+                simbolo_saida_text.next_to(current_state_tex, DOWN, buff=0.2)  # Espaçamento entre símbolos
+            output_symbols_group.add(simbolo_saida_text)
 
             # Animação de transição e saída
             self.play(
-                Transform(estado_atual, proximo_estado_text),
+                Transform(current_state_tex, proximo_estado_text),
                 Create(seta),
                 Create(simbolo_saida_text)
             )
             self.wait(0.5)
 
         # Exiba a palavra de saída final
-        palavra_saida_texto = Text(palavra_saida)  # Alinhamento na parte inferior
-        palavra_saida_texto.next_to(estado_atual, DOWN, buff=0.2)  # Espaçamento entre símbolos
+        palavra_saida_texto = Text(output_string)  # Alinhamento na parte inferior
+        palavra_saida_texto.next_to(current_state_tex, DOWN, buff=0.2)  # Espaçamento entre símbolos
         self.play(Create(palavra_saida_texto))
         self.wait()
