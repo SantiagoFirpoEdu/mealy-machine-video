@@ -1,4 +1,7 @@
 from manim import *
+from numpy import ndarray
+
+from mealy_machine_library import function_type
 
 
 class Introduction(Scene):
@@ -43,40 +46,47 @@ class MealyMachineDefinition(Scene):
     def construct(self):
         self.finite_transductor_title()
 
+        self.same_length_property()
+
+        # Create the text and shape
+        input_word = Text("abcde").move_to(4 * LEFT)
+
+        mealy_machine = Text("Máquina de Mealy")
+        mealy_machine_frame = Square(color=WHITE).surround(mealy_machine, 2)
+
+        output_word = Text("01001").move_to(mealy_machine)
+
+        self.add(mealy_machine_frame)
+
+        self.play(Write(input_word))
+        self.play(Create(mealy_machine))
+
+        # Add text and shape to the scene
+        fade_and_move_to_object(self, input_word, mealy_machine)
+
+        # Wait for a moment before ending the scene
+        self.wait(1)
+
+        fade_in_and_move_to_point(self, output_word, 4 * RIGHT)
+
+        mealy_machine_tuple(self)
+
+        transition_function_definition = Tex(function_type("sigma", "Q \times Sigma", "Q"))
+
+    def same_length_property(self):
         input_word: Tex = Tex("$w_0$")
         self.play(Create(input_word))
         self.wait(3)
         input_word_length: Tex = Tex("$|w_0| = n$")
         self.play(ReplacementTransform(input_word, input_word_length))
         self.wait(3)
-
         output_word: Tex = Tex("$w_1$")
         self.play(ReplacementTransform(input_word_length, output_word))
         self.wait(3)
-
         output_word_length: Tex = Tex("$|w_1| = n$")
         self.play(ReplacementTransform(output_word, output_word_length))
         self.wait(3)
-
-        # Create the text and shape
-        input_word = Text("abcde").move_to(4 * LEFT)
-        output_word = Text("01001").move_to(4 * RIGHT)
-
-        mealy_machine_frame = Square(color=WHITE)
-        mealy_machine = Text("Máquina de Mealy").surround(mealy_machine_frame)
-
-        self.play(Write(input_word))
-        self.play(Create(mealy_machine))
-
-        # Add text and shape to the scene
-        fade_and_move_to(self, input_word, mealy_machine)
-
-        # Wait for a moment before ending the scene
-        self.wait(1)
-
-        mealy_machine_tuple(self)
-
-        transition_function_definition = Tex(function_type("sigma", "Q \times Sigma", "Q"))
+        self.play(FadeOut(output_word_length))
 
     def finite_transductor_title(self):
         finite_transductor = Text("Transdutor de estado finito")
@@ -85,11 +95,16 @@ class MealyMachineDefinition(Scene):
         self.play(FadeOut(finite_transductor))
 
 
-def fade_and_move_to(scene: Scene, from_object: Mobject, to_object: Mobject):
+def fade_and_move_to_object(scene: Scene, from_object: Mobject, to_object: Mobject):
     # Move the text to the shape and fade it out
     scene.play(
         from_object.animate.move_to(to_object).fade(1),
     )
+
+
+def fade_in_and_move_to_point(scene: Scene, from_object: Mobject, to_object: ndarray):
+    # Move the text to the shape and fade it out
+    scene.play(FadeIn(from_object.animate.move_to(to_object)))
 
 
 def mealy_machine_tuple(scene: Scene):
@@ -114,13 +129,10 @@ def mealy_machine_tuple(scene: Scene):
         current_element = element
 
 
-def function_type(function: str, domain: str, counterdomain: str):
-    return Tex(f"${function} : {domain} \rightarrow {counterdomain} $")
-
-
 class MealyMachineExample(Scene):
     def construct(self):
         # Defina seus estados, transições e funções de saída aqui
+        global simbolo_saida
         estados = ["q0", "q1"]
         transicoes = [((0, "q0"), "q1"), ((1, "q0"), "q1"), ((0, "q1"), "q0"), ((1, "q1"), "q0")]
         saidas = [((0, "q0"), "a"), ((1, "q0"), "b"), ((0, "q1"), "a"), ((1, "q1"), "a")]
